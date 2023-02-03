@@ -57,5 +57,19 @@ func (s *UserServiceImpl) Login(ctx context.Context, req *user.LoginReq) (resp *
 // UserInfo implements the UserServiceImpl interface.
 func (s *UserServiceImpl) UserInfo(ctx context.Context, req *user.UserInfoReq) (resp *user.UserInfoResp, err error) {
 	//  Your code here...
-	return
+	resp = new(user.UserInfoResp)
+
+	if err = req.IsValid(); err != nil {
+		resp.BaseResp = pack.BuildBaseResp(errno.ParamErr)
+		return resp, nil
+	}
+
+	resp, err = service.NewUserInfoService(ctx).UserInfo(req)
+	if err != nil {
+		resp.BaseResp = pack.BuildBaseResp(err)
+		return resp, nil
+	}
+
+	resp.BaseResp = pack.BuildBaseResp(errno.Success)
+	return resp, nil
 }

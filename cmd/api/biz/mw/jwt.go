@@ -65,9 +65,8 @@ func InitJWT() {
 			c.JSON(http.StatusOK, utils.H{
 				"status_code": errno.Success.ErrCode,
 				"status_msg":  errno.Success.ErrMsg,
-				//从ctx中获取id
-				"user_id": id,
-				"token":   token,
+				"user_id":     id,
+				"token":       token,
 			})
 		},
 		Unauthorized: func(ctx context.Context, c *app.RequestContext, code int, message string) {

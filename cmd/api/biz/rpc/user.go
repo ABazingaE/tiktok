@@ -65,3 +65,15 @@ func CheckUser(ctx context.Context, req *user.LoginReq) (int64, error) {
 	}
 	return resp.UserId, nil
 }
+
+// GetUserInfo get user info
+func GetUserInfo(ctx context.Context, req *user.UserInfoReq) (r *user.UserInfoResp, err error) {
+	resp, err := userClient.UserInfo(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.BaseResp.StatusCode != 0 {
+		return nil, errno.NewErrNo(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
+	}
+	return resp, nil
+}

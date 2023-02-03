@@ -5,10 +5,15 @@ package api
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/utils"
+	"github.com/form3tech-oss/jwt-go"
+	"net/http"
+	"strconv"
 	api "tiktok/cmd/api/biz/model/api"
 	"tiktok/cmd/api/biz/mw"
 	"tiktok/cmd/api/biz/rpc"
 	"tiktok/kitex_gen/user"
+	"tiktok/pkg/consts"
 	"tiktok/pkg/errno"
 )
 
@@ -53,9 +58,44 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.UserInfoResp)
+	//解析token，获取请求者的id
+	tokenString := req.Token
+	claims := jwt.MapClaims{}
+	_, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(consts.SecretKey), nil
+	})
+	var requestUserId interface{}
+	for key, val := range claims {
+		if key == "user_id" {
+			requestUserId = val
+			break
+		}
+	}
+	var resp *user.UserInfoResp
+	resp, err = rpc.GetUserInfo(context.Background(), &user.UserInfoReq{
+		UserId: req.UserID,
+		Token:  strconv.FormatFloat(requestUserId.(float64), 'f', -1, 64),
+	})
 
-	c.JSON(0, resp)
+	/*
+			处理返回值，json格式：
+		{
+		    "status_code": 0,
+		    "status_msg": "string",
+		    "user": {
+		        "id": 0,
+		        "name": "string",
+		        "follow_count": 0,
+		        "follower_count": 0,
+		        "is_follow": true
+		    }
+		}
+	*/
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"user":        resp.User,
+	})
 }
 
 // VideoStream .

@@ -8,6 +8,7 @@ require (
 	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/hertz v0.5.1
 	github.com/cloudwego/kitex v0.4.4
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/hertz-contrib/gzip v0.0.1
 	github.com/hertz-contrib/jwt v1.0.2
 	github.com/hertz-contrib/obs-opentelemetry/logging/logrus v0.1.1
