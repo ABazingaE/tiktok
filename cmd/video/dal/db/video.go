@@ -1,6 +1,8 @@
 package db
 
-import "context"
+import (
+	"context"
+)
 
 type Video struct {
 	Id            int    `gorm:"column:id" json:"id"`                         //type:*int     comment:                    version:2023-01-05 10:20
@@ -21,9 +23,19 @@ func (v *Video) TableName() string {
 
 // 插入视频信息
 func CreateVideo(ctx context.Context, video []*Video) error {
-
 	if err := DB.WithContext(ctx).Create(video).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+// 视频流
+func GetVideoStream(ctx context.Context, latestTIme int64) (videoInfo []*Video, nextTime int64, error error) {
+	//查询出所有小于latestTime的最新的最多30条视频信息
+	var videos []*Video
+	if err := DB.WithContext(ctx).Where("publish_time < ?", latestTIme).Order("publish_time desc").Limit(30).Find(&videos).Error; err != nil {
+		return nil, 0, err
+	}
+	nextTime = int64(videos[0].PublishTime)
+	return videos, nextTime, nil
 }

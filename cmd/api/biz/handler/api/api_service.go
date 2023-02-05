@@ -86,9 +86,20 @@ func VideoStream(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.VideoStreamResp)
+	tokenString := req.Token
+	requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
+	var resp *video.VideoStreamResp
+	resp, err = rpc.VideoStream(context.Background(), &video.VideoStreamReq{
+		LatestTime: req.LatestTime,
+		Token:      requestUserId,
+	})
 
-	c.JSON(0, resp)
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"next_time":   resp.NextTime,
+		"video_list":  resp.VideoList,
+	})
 }
 
 // VideoUpload .

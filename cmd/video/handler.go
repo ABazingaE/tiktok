@@ -12,7 +12,11 @@ type VideoServiceImpl struct{}
 // VideoStream implements the VideoServiceImpl interface.
 func (s *VideoServiceImpl) VideoStream(ctx context.Context, req *video.VideoStreamReq) (resp *video.VideoStreamResp, err error) {
 	//  Your code here...
-	return
+	resp, err = service.NewVideoFeedService(ctx).VideoFeed(req)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
 
 // VideoUpload implements the VideoServiceImpl interface.
