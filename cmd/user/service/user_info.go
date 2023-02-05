@@ -24,13 +24,17 @@ func (s *UserInfoService) UserInfo(req *user.UserInfoReq) (*user.UserInfoResp, e
 	/*
 		request的token已解析为请求者id，需根据此id与userId判断二者的关注关系，即请求者id是否关注了userId，最后得到is_follow字段值
 	*/
-	requestId, err := strconv.ParseInt(req.Token, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	isFollow, err := db.IsFollow(s.ctx, req.UserId, requestId)
-	if err != nil {
-		return nil, err
+	var isFollow = false
+	if req.Token != "" {
+
+		requestId, err := strconv.ParseInt(req.Token, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		isFollow, err = db.IsFollow(s.ctx, req.UserId, requestId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	baseInfo, errno := db.QueryUserInfoById(s.ctx, req.UserId)

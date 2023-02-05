@@ -65,3 +65,15 @@ func VideoStream(ctx context.Context, req *video.VideoStreamReq) (r *video.Video
 	}
 	return resp, nil
 }
+
+// VideoList list video
+func VideoList(ctx context.Context, req *video.VideoListReq) (r *video.VideoListResp, err error) {
+	resp, err := videoClient.VideoList(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.BaseResp.StatusCode != 0 {
+		return nil, errno.NewErrNo(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
+	}
+	return resp, nil
+}

@@ -87,12 +87,19 @@ func VideoStream(ctx context.Context, c *app.RequestContext) {
 	}
 
 	tokenString := req.Token
-	requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
+	videoSteamReq := &video.VideoStreamReq{}
+	videoSteamReq.LatestTime = req.LatestTime
+	if tokenString != "" {
+		requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
+		if err != nil {
+			SendResponse(c, errno.ConvertErr(err))
+			return
+		}
+		videoSteamReq.Token = requestUserId
+	}
+
 	var resp *video.VideoStreamResp
-	resp, err = rpc.VideoStream(context.Background(), &video.VideoStreamReq{
-		LatestTime: req.LatestTime,
-		Token:      requestUserId,
-	})
+	resp, err = rpc.VideoStream(context.Background(), videoSteamReq)
 
 	c.JSON(http.StatusOK, utils.H{
 		"status_code": 0,
@@ -166,10 +173,20 @@ func VideoList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
+	resp, err := rpc.VideoList(context.Background(), &video.VideoListReq{
+		UserId: req.UserID,
+		Token:  req.Token,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	resp := new(api.VideoListResp)
-
-	c.JSON(0, resp)
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"video_list":  resp.VideoList,
+	})
 }
 
 // LikeAction .

@@ -5,6 +5,7 @@ import (
 	"go.etcd.io/etcd/pkg/v3/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"tiktok/cmd/video/dal/db"
 	"tiktok/kitex_gen/video"
@@ -37,6 +38,10 @@ func (s *VideoUploadService) VideoUpload(req *video.VideoUploadReq) (resp *video
 	wg.Wait()
 
 	playUrl, coverUrl := UploadAndGetVideoInfo(filePath)
+	//修改Url, 读取字符串，直到遇到“?”为止,保留“?”之前的字符串
+	playUrl = playUrl[:strings.Index(playUrl, "?")]
+	coverUrl = coverUrl[:strings.Index(coverUrl, "?")]
+	//删除临时文件
 	os.Remove(filePath)
 
 	//将视频信息写入数据库

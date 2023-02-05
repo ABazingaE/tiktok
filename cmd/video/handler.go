@@ -11,7 +11,6 @@ type VideoServiceImpl struct{}
 
 // VideoStream implements the VideoServiceImpl interface.
 func (s *VideoServiceImpl) VideoStream(ctx context.Context, req *video.VideoStreamReq) (resp *video.VideoStreamResp, err error) {
-	//  Your code here...
 	resp, err = service.NewVideoFeedService(ctx).VideoFeed(req)
 	if err != nil {
 		return resp, err
@@ -21,7 +20,6 @@ func (s *VideoServiceImpl) VideoStream(ctx context.Context, req *video.VideoStre
 
 // VideoUpload implements the VideoServiceImpl interface.
 func (s *VideoServiceImpl) VideoUpload(ctx context.Context, req *video.VideoUploadReq) (resp *video.VideoUploadResp, err error) {
-	//  Your code here...
 	_, err = service.NewVideoUploadService(ctx).VideoUpload(req)
 	if err != nil {
 		return resp, err
@@ -31,6 +29,9 @@ func (s *VideoServiceImpl) VideoUpload(ctx context.Context, req *video.VideoUplo
 
 // VideoList implements the VideoServiceImpl interface.
 func (s *VideoServiceImpl) VideoList(ctx context.Context, req *video.VideoListReq) (resp *video.VideoListResp, err error) {
-	//  Your code here...
-	return
+	resp, err = service.NewVideoListService(ctx).VideoList(req)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }

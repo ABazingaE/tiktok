@@ -18,13 +18,14 @@ func NewVideoFeedService(ctx context.Context) *VideoStreamService {
 }
 
 func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.VideoStreamResp, err error) {
-	//判断latest_time参数，若为空则设定为当下时间
+	//判断latest_time参数，若为0则设定为当下时间
 	latestTime := req.LatestTime
-	if latestTime == nil {
+
+	if *latestTime == int64(0) {
 		latestTime = new(int64)
 		*latestTime = time.Now().Unix()
 	}
-	//userId, _ := strconv.ParseInt(req.Token, 10, 64)
+
 	videoInfo, nextTime, err := db.GetVideoStream(s.ctx, *latestTime)
 	if err != nil {
 		return nil, err
@@ -38,7 +39,9 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 		//构造请求，rpc调用user中的接口
 		authorInfoReq := &user.UserInfoReq{
 			UserId: authorId,
-			Token:  req.Token,
+		}
+		if req.Token != "" {
+			authorInfoReq.Token = req.Token
 		}
 		authorInfoResp, err := rpc.GetUserInfo(s.ctx, authorInfoReq)
 		if err != nil {

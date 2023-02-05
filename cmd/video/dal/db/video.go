@@ -39,3 +39,12 @@ func GetVideoStream(ctx context.Context, latestTIme int64) (videoInfo []*Video, 
 	nextTime = int64(videos[0].PublishTime)
 	return videos, nextTime, nil
 }
+
+// 查询指定用户发布的视频,按照从新到旧的顺序
+func GetVideoByAuthorId(ctx context.Context, authorId int64) (videoInfo []*Video, error error) {
+	var videos []*Video
+	if err := DB.WithContext(ctx).Where("author_id = ?", authorId).Order("publish_time desc").Find(&videos).Error; err != nil {
+		return nil, err
+	}
+	return videos, nil
+}
