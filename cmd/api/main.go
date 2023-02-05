@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/hertz/pkg/network/standard"
 	hertzlogrus "github.com/hertz-contrib/obs-opentelemetry/logging/logrus"
 	"github.com/hertz-contrib/obs-opentelemetry/tracing"
 	"github.com/hertz-contrib/pprof"
@@ -27,6 +28,8 @@ func main() {
 		server.WithHostPorts(":8080"),
 		server.WithHandleMethodNotAllowed(true), // coordinate with NoMethod
 		tracer,
+		server.WithTransport(standard.NewTransporter),
+		server.WithStreamBody(true),
 	)
 	// use pprof mw
 	pprof.Register(h)

@@ -6,7 +6,7 @@ import (
 	"context"
 	client "github.com/cloudwego/kitex/client"
 	kitex "github.com/cloudwego/kitex/pkg/serviceinfo"
-	video "video/kitex_gen/video"
+	video "tiktok/kitex_gen/video"
 )
 
 func serviceInfo() *kitex.ServiceInfo {

@@ -6,14 +6,15 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/utils"
-	"github.com/form3tech-oss/jwt-go"
+	"io"
+	"mime/multipart"
 	"net/http"
-	"strconv"
 	api "tiktok/cmd/api/biz/model/api"
 	"tiktok/cmd/api/biz/mw"
 	"tiktok/cmd/api/biz/rpc"
+	apiUtil "tiktok/cmd/api/biz/util"
 	"tiktok/kitex_gen/user"
-	"tiktok/pkg/consts"
+	"tiktok/kitex_gen/video"
 	"tiktok/pkg/errno"
 )
 
@@ -60,37 +61,13 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 
 	//解析token，获取请求者的id
 	tokenString := req.Token
-	claims := jwt.MapClaims{}
-	_, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(consts.SecretKey), nil
-	})
-	var requestUserId interface{}
-	for key, val := range claims {
-		if key == "user_id" {
-			requestUserId = val
-			break
-		}
-	}
+	requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
 	var resp *user.UserInfoResp
 	resp, err = rpc.GetUserInfo(context.Background(), &user.UserInfoReq{
 		UserId: req.UserID,
-		Token:  strconv.FormatFloat(requestUserId.(float64), 'f', -1, 64),
+		Token:  requestUserId,
 	})
 
-	/*
-			处理返回值，json格式：
-		{
-		    "status_code": 0,
-		    "status_msg": "string",
-		    "user": {
-		        "id": 0,
-		        "name": "string",
-		        "follow_count": 0,
-		        "follower_count": 0,
-		        "is_follow": true
-		    }
-		}
-	*/
 	c.JSON(http.StatusOK, utils.H{
 		"status_code": 0,
 		"status_msg":  "success",
@@ -118,16 +95,54 @@ func VideoStream(ctx context.Context, c *app.RequestContext) {
 // @router /douyin/publish/action/ [POST]
 func VideoUpload(ctx context.Context, c *app.RequestContext) {
 	var err error
-	var req api.VideoUploadReq
-	err = c.BindAndValidate(&req)
+	//var req api.VideoUploadReq
+	//err = c.BindAndValidate(&req)
+	//if err != nil {
+	//	SendResponse(c, errno.ConvertErr(err))
+	//	return
+	//}
+	var form *multipart.Form
+	form, err = c.MultipartForm()
 	if err != nil {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
 
-	resp := new(api.VideoUploadResp)
+	//获取视频
+	var videoData *multipart.FileHeader
+	videoData = form.File["data"][0]
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	videoReader, err := videoData.Open()
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	videoByte, err := io.ReadAll(videoReader)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	c.JSON(0, resp)
+	//解析token，获取请求者的id
+	tokenString := form.Value["token"][0]
+	requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
+
+	//获取title
+	title := form.Value["title"][0]
+
+	_, err = rpc.VideoUpload(context.Background(), &video.VideoUploadReq{
+		Data:  videoByte,
+		Title: title,
+		Token: requestUserId,
+	})
+
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+	})
 }
 
 // VideoList .

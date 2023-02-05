@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"tiktok/cmd/video/service"
 	video "tiktok/kitex_gen/video"
 )
 
@@ -17,6 +18,10 @@ func (s *VideoServiceImpl) VideoStream(ctx context.Context, req *video.VideoStre
 // VideoUpload implements the VideoServiceImpl interface.
 func (s *VideoServiceImpl) VideoUpload(ctx context.Context, req *video.VideoUploadReq) (resp *video.VideoUploadResp, err error) {
 	//  Your code here...
+	_, err = service.NewVideoUploadService(ctx).VideoUpload(req)
+	if err != nil {
+		return resp, err
+	}
 	return
 }
 
