@@ -34,9 +34,8 @@ func (s *VideoListService) VideoList(req *video.VideoListReq) (resp *video.Video
 	}
 
 	//3.将用户信息和视频信息组装成返回值
-	videoList := make([]*video.Video, len(videoInfo))
-	//去除videoList的第一个空数据
-	videoList = videoList[1:]
+	var videoList []*video.Video
+
 	for _, v := range videoInfo {
 		videoList = append(videoList, &video.Video{
 			Id:            int64(v.Id),

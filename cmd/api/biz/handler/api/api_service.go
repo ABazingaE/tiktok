@@ -13,6 +13,7 @@ import (
 	"tiktok/cmd/api/biz/mw"
 	"tiktok/cmd/api/biz/rpc"
 	apiUtil "tiktok/cmd/api/biz/util"
+	"tiktok/kitex_gen/comment"
 	"tiktok/kitex_gen/like"
 	"tiktok/kitex_gen/user"
 	"tiktok/kitex_gen/video"
@@ -266,9 +267,29 @@ func CommentAction(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.CommentActionResp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	c.JSON(0, resp)
+	resp, err := rpc.CommentAction(context.Background(), &comment.CommentActionReq{
+		Token:       userId,
+		VideoId:     req.VideoID,
+		ActionType:  req.ActionType,
+		CommentText: req.CommentText,
+		CommentId:   req.CommentID,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"comment":     resp.Comment,
+	})
 }
 
 // CommentList .
@@ -281,10 +302,25 @@ func CommentList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
-
-	resp := new(api.CommentListResp)
-
-	c.JSON(0, resp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	resp, err := rpc.CommentList(context.Background(), &comment.CommentListReq{
+		Token:   userId,
+		VideoId: req.VideoID,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code":  0,
+		"status_msg":   "success",
+		"comment_list": resp.CommentList,
+	})
 }
 
 // FollowAction .

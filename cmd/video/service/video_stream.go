@@ -30,9 +30,8 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 	if err != nil {
 		return nil, err
 	}
-	videoList := make([]*video.Video, len(videoInfo))
-	//去除videoList的第一个空数据
-	videoList = videoList[1:]
+	var videoList []*video.Video
+
 	//遍历videoInfo,每次遍历取出authorId，根据authorId查询用户信息
 	for _, v := range videoInfo {
 		authorId := v.AuthorId
@@ -56,7 +55,7 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 			FavoriteCount: int64(v.FavoriteCount),
 			CommentCount:  int64(v.CommentCount),
 			//TODO: 未完善 后续完成喜欢操作时，填充is_favorite字段,暂时写死
-			IsFavorite: false,
+			IsFavorite: true,
 			Title:      v.Title,
 		})
 
