@@ -48,3 +48,14 @@ func GetVideoByAuthorId(ctx context.Context, authorId int64) (videoInfo []*Video
 	}
 	return videos, nil
 }
+
+/*
+* 查询指定视频id的视频信息,按照从新到旧的顺序
+ */
+func GetVideoByIds(ctx context.Context, videoId []int64) (videoInfo []*Video, error error) {
+	var videos []*Video
+	if err := DB.WithContext(ctx).Where("id in (?)", videoId).Order("publish_time desc").Find(&videos).Error; err != nil {
+		return nil, err
+	}
+	return videos, nil
+}

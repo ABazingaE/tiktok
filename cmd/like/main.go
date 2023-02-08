@@ -11,6 +11,7 @@ import (
 	"gorm.io/plugin/opentelemetry/provider"
 	"net"
 	"tiktok/cmd/like/dal"
+	"tiktok/cmd/like/rpc"
 	"tiktok/kitex_gen/like/likeservice"
 	"tiktok/pkg/consts"
 	"tiktok/pkg/mw"
@@ -18,6 +19,7 @@ import (
 
 func Init() {
 	dal.Init()
+	rpc.Init()
 	// klog init
 	klog.SetLogger(kitexlogrus.NewLogger())
 	klog.SetLevel(klog.LevelInfo)

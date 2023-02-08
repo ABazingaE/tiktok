@@ -233,6 +233,26 @@ func LikeList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+
+	resp, err := rpc.LikeList(context.Background(), &like.LikeListReq{
+		UserId: req.UserID,
+		Token:  userId,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"video_list":  resp.VideoList,
+	})
 }
 
 // CommentAction .

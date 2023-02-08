@@ -14,6 +14,7 @@ type Client interface {
 	VideoStream(ctx context.Context, req *video.VideoStreamReq, callOptions ...callopt.Option) (r *video.VideoStreamResp, err error)
 	VideoUpload(ctx context.Context, req *video.VideoUploadReq, callOptions ...callopt.Option) (r *video.VideoUploadResp, err error)
 	VideoList(ctx context.Context, req *video.VideoListReq, callOptions ...callopt.Option) (r *video.VideoListResp, err error)
+	VideoInfoListById(ctx context.Context, req *video.VideoInfoListByIdReq, callOptions ...callopt.Option) (r *video.VideoInfoListByIdResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -58,4 +59,9 @@ func (p *kVideoServiceClient) VideoUpload(ctx context.Context, req *video.VideoU
 func (p *kVideoServiceClient) VideoList(ctx context.Context, req *video.VideoListReq, callOptions ...callopt.Option) (r *video.VideoListResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.VideoList(ctx, req)
+}
+
+func (p *kVideoServiceClient) VideoInfoListById(ctx context.Context, req *video.VideoInfoListByIdReq, callOptions ...callopt.Option) (r *video.VideoInfoListByIdResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.VideoInfoListById(ctx, req)
 }

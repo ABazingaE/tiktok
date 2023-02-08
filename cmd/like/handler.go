@@ -23,6 +23,12 @@ func (s *LikeServiceImpl) LikeAction(ctx context.Context, req *like.LikeActionRe
 
 // LikeList implements the LikeServiceImpl interface.
 func (s *LikeServiceImpl) LikeList(ctx context.Context, req *like.LikeListReq) (resp *like.LikeListResp, err error) {
-
-	return
+	if err = req.IsValid(); err != nil {
+		return nil, err
+	}
+	resp, err = service.NewLikeListService(ctx).LikeList(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

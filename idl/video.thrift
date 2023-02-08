@@ -84,6 +84,20 @@ struct VideoListResp {
     2: required list<Video> video_list
 }
 
+
+/*
+* 由视频id获取视频信息
+* */
+struct VideoInfoListByIdReq {
+    1: required list<i64> video_ids
+    2: required string token
+}
+
+struct VideoInfoListByIdResp {
+    1: required BaseResp base_resp
+    2: required list<Video> video_list
+}
+
 /*
 * 定义服务
 * */
@@ -91,6 +105,7 @@ service VideoService {
     VideoStreamResp VideoStream(1: VideoStreamReq req)
     VideoUploadResp VideoUpload(1: VideoUploadReq req)
     VideoListResp VideoList(1: VideoListReq req)
+    VideoInfoListByIdResp VideoInfoListById(1: VideoInfoListByIdReq req)
 }
 
 

@@ -7,15 +7,15 @@ import (
 	"github.com/kitex-contrib/obs-opentelemetry/provider"
 	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	etcd "github.com/kitex-contrib/registry-etcd"
-	"tiktok/kitex_gen/like"
-	"tiktok/kitex_gen/like/likeservice"
+	"tiktok/kitex_gen/video"
+	"tiktok/kitex_gen/video/videoservice"
 	"tiktok/pkg/consts"
 	"tiktok/pkg/mw"
 )
 
-var likeClient likeservice.Client
+var videoClient videoservice.Client
 
-func initLike() {
+func initVideo() {
 	r, err := etcd.NewEtcdResolver([]string{consts.ETCDAddress})
 	if err != nil {
 		panic(err)
@@ -25,8 +25,8 @@ func initLike() {
 		provider.WithExportEndpoint(consts.ExportEndpoint),
 		provider.WithInsecure(),
 	)
-	c, err := likeservice.NewClient(
-		consts.LikeServiceName,
+	c, err := videoservice.NewClient(
+		consts.VideoServiceName,
 		client.WithResolver(r),
 		client.WithMuxConnection(1),
 		client.WithMiddleware(mw.CommonMiddleware),
@@ -37,23 +37,14 @@ func initLike() {
 	if err != nil {
 		panic(err)
 	}
-	likeClient = c
+	videoClient = c
 }
 
-// like action
-func LikeAction(ctx context.Context, req *like.LikeActionReq) (r *like.LikeActionResp, err error) {
-	resp, err := likeClient.LikeAction(ctx, req)
+func VideoInfoListById(ctx context.Context, req *video.VideoInfoListByIdReq) (videoInfo []*video.Video, err error) {
+	resp, err := videoClient.VideoInfoListById(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
-}
 
-// like list
-func LikeList(ctx context.Context, req *like.LikeListReq) (r *like.LikeListResp, err error) {
-	resp, err := likeClient.LikeList(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	return resp.VideoList, nil
 }

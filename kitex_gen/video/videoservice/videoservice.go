@@ -19,9 +19,10 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "VideoService"
 	handlerType := (*video.VideoService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"VideoStream": kitex.NewMethodInfo(videoStreamHandler, newVideoServiceVideoStreamArgs, newVideoServiceVideoStreamResult, false),
-		"VideoUpload": kitex.NewMethodInfo(videoUploadHandler, newVideoServiceVideoUploadArgs, newVideoServiceVideoUploadResult, false),
-		"VideoList":   kitex.NewMethodInfo(videoListHandler, newVideoServiceVideoListArgs, newVideoServiceVideoListResult, false),
+		"VideoStream":       kitex.NewMethodInfo(videoStreamHandler, newVideoServiceVideoStreamArgs, newVideoServiceVideoStreamResult, false),
+		"VideoUpload":       kitex.NewMethodInfo(videoUploadHandler, newVideoServiceVideoUploadArgs, newVideoServiceVideoUploadResult, false),
+		"VideoList":         kitex.NewMethodInfo(videoListHandler, newVideoServiceVideoListArgs, newVideoServiceVideoListResult, false),
+		"VideoInfoListById": kitex.NewMethodInfo(videoInfoListByIdHandler, newVideoServiceVideoInfoListByIdArgs, newVideoServiceVideoInfoListByIdResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "video",
@@ -91,6 +92,24 @@ func newVideoServiceVideoListResult() interface{} {
 	return video.NewVideoServiceVideoListResult()
 }
 
+func videoInfoListByIdHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*video.VideoServiceVideoInfoListByIdArgs)
+	realResult := result.(*video.VideoServiceVideoInfoListByIdResult)
+	success, err := handler.(video.VideoService).VideoInfoListById(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newVideoServiceVideoInfoListByIdArgs() interface{} {
+	return video.NewVideoServiceVideoInfoListByIdArgs()
+}
+
+func newVideoServiceVideoInfoListByIdResult() interface{} {
+	return video.NewVideoServiceVideoInfoListByIdResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -126,6 +145,16 @@ func (p *kClient) VideoList(ctx context.Context, req *video.VideoListReq) (r *vi
 	_args.Req = req
 	var _result video.VideoServiceVideoListResult
 	if err = p.c.Call(ctx, "VideoList", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) VideoInfoListById(ctx context.Context, req *video.VideoInfoListByIdReq) (r *video.VideoInfoListByIdResp, err error) {
+	var _args video.VideoServiceVideoInfoListByIdArgs
+	_args.Req = req
+	var _result video.VideoServiceVideoInfoListByIdResult
+	if err = p.c.Call(ctx, "VideoInfoListById", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
