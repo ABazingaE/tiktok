@@ -13,6 +13,7 @@ import (
 	"tiktok/cmd/api/biz/mw"
 	"tiktok/cmd/api/biz/rpc"
 	apiUtil "tiktok/cmd/api/biz/util"
+	"tiktok/kitex_gen/like"
 	"tiktok/kitex_gen/user"
 	"tiktok/kitex_gen/video"
 	"tiktok/pkg/errno"
@@ -199,10 +200,27 @@ func LikeAction(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	resp := new(api.LikeActionResp)
+	_, err = rpc.LikeAction(context.Background(), &like.LikeActionReq{
+		Token:      userId,
+		VideoId:    req.VideoID,
+		ActionType: req.ActionType,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+	})
 
-	c.JSON(0, resp)
 }
 
 // LikeList .
@@ -215,10 +233,6 @@ func LikeList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
-
-	resp := new(api.LikeListResp)
-
-	c.JSON(0, resp)
 }
 
 // CommentAction .

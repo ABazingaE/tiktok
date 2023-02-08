@@ -18,4 +18,6 @@ const (
 	AccessKeyId       = "LTAI5tDqxkmzXp1YkSb4tYXn"
 	AccessKeySecret   = "fxPiIbyE8nqP4i5EzTUQdqiXqjcHGQ"
 	TempPath          = "/home/bazinga/go/tiktok/"
+	LikeServiceName   = "like"
+	LikeServiceAddr   = ":9002"
 )
