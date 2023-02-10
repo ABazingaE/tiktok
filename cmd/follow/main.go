@@ -1,16 +1,57 @@
 package main
 
 import (
-	"log"
-	follow "tiktok/kitex_gen/follow/followservice"
+	"github.com/cloudwego/kitex/pkg/klog"
+	"github.com/cloudwego/kitex/pkg/limit"
+	"github.com/cloudwego/kitex/pkg/rpcinfo"
+	"github.com/cloudwego/kitex/server"
+	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
+	etcd "github.com/kitex-contrib/registry-etcd"
+	"gorm.io/plugin/opentelemetry/provider"
+	"net"
+	"tiktok/cmd/follow/dal"
+	"tiktok/cmd/follow/rpc"
+	"tiktok/kitex_gen/follow/followservice"
+	"tiktok/pkg/consts"
+	"tiktok/pkg/mw"
 )
 
+func Init() {
+	dal.Init()
+	rpc.Init()
+	// klog init
+	klog.SetLogger(kitexlogrus.NewLogger())
+	klog.SetLevel(klog.LevelInfo)
+}
+
 func main() {
-	svr := follow.NewServer(new(FollowServiceImpl))
-
-	err := svr.Run()
-
+	r, err := etcd.NewEtcdRegistry([]string{consts.ETCDAddress})
 	if err != nil {
-		log.Println(err.Error())
+		panic(err)
+	}
+	addr, err := net.ResolveTCPAddr(consts.TCP, consts.FollowServiceAddr)
+	if err != nil {
+		panic(err)
+	}
+	Init()
+	provider.NewOpenTelemetryProvider(
+		provider.WithServiceName(consts.FollowServiceName),
+		provider.WithExportEndpoint(consts.ExportEndpoint),
+		provider.WithInsecure(),
+	)
+	svr := followservice.NewServer(new(FollowServiceImpl),
+		server.WithServiceAddr(addr),
+		server.WithRegistry(r),
+		server.WithLimit(&limit.Option{MaxConnections: 1000, MaxQPS: 100}),
+		server.WithMuxTransport(),
+		server.WithMiddleware(mw.CommonMiddleware),
+		server.WithMiddleware(mw.ServerMiddleware),
+		server.WithSuite(tracing.NewServerSuite()),
+		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: consts.FollowServiceName}),
+	)
+	err = svr.Run()
+	if err != nil {
+		klog.Fatal(err)
 	}
 }

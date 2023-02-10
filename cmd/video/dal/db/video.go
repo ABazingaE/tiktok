@@ -4,6 +4,18 @@ import (
 	"context"
 )
 
+type Like struct {
+	Id      int `gorm:"column:id" json:"id"`             //type:*int   comment:          version:2023-01-07 18:05
+	UserId  int `gorm:"column:user_id" json:"user_id"`   //type:*int   comment:          version:2023-01-07 18:05
+	VideoId int `gorm:"column:video_id" json:"video_id"` //type:*int   comment:视频id    version:2023-01-07 18:05
+}
+
+// TableName 表名:like，。
+// 说明:
+func (l *Like) TableName() string {
+	return "like"
+}
+
 type Video struct {
 	Id            int    `gorm:"column:id" json:"id"`                         //type:*int     comment:                    version:2023-01-05 10:20
 	AuthorId      int64  `gorm:"column:author_id" json:"author_id"`           //type:*int     comment:                    version:2023-01-05 10:20
@@ -58,4 +70,18 @@ func GetVideoByIds(ctx context.Context, videoId []int64) (videoInfo []*Video, er
 		return nil, err
 	}
 	return videos, nil
+}
+
+// 查询登录用户是否喜欢了该视频
+func IsFavorite(ctx context.Context, userId int64, videoId int64) (isFollow bool, error error) {
+	var like Like
+	if err := DB.WithContext(ctx).Where("user_id = ? and video_id = ?", userId, videoId).First(&like).Error; err != nil {
+		//如果没有找到记录，返回false
+		if err.Error() == "record not found" {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+	return true, nil
 }

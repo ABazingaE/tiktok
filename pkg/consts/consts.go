@@ -22,4 +22,6 @@ const (
 	LikeServiceAddr    = ":9002"
 	CommentServiceName = "comment"
 	CommentServiceAddr = ":9003"
+	FollowServiceName  = "follow"
+	FollowServiceAddr  = ":9004"
 )

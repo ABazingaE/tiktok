@@ -5,4 +5,5 @@ func Init() {
 	initVideo()
 	initLike()
 	initComment()
+	initFollow()
 }

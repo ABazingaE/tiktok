@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	apiUtil "tiktok/cmd/api/biz/util"
 	"tiktok/cmd/video/dal/db"
 	"tiktok/cmd/video/rpc"
@@ -26,6 +27,13 @@ func (s *VideoListService) VideoList(req *video.VideoListReq) (resp *video.Video
 		UserId: req.UserId,
 		Token:  requestUserId,
 	})
+	if err != nil {
+		return nil, err
+	}
+	userId, err := strconv.Atoi(requestUserId)
+	if err != nil {
+		return nil, err
+	}
 
 	//2.查询用户id下的视频信息
 	videoInfo, err := db.GetVideoByAuthorId(s.ctx, req.UserId)
@@ -37,6 +45,12 @@ func (s *VideoListService) VideoList(req *video.VideoListReq) (resp *video.Video
 	var videoList []*video.Video
 
 	for _, v := range videoInfo {
+
+		//查询当前用户是否喜欢该视频
+		isFavorite, err := db.IsFavorite(s.ctx, int64(userId), int64(v.Id))
+		if err != nil {
+			return nil, err
+		}
 		videoList = append(videoList, &video.Video{
 			Id:            int64(v.Id),
 			Author:        (*video.Author)(userInfo.User),
@@ -44,9 +58,8 @@ func (s *VideoListService) VideoList(req *video.VideoListReq) (resp *video.Video
 			CoverUrl:      v.CoverUrl,
 			FavoriteCount: int64(v.FavoriteCount),
 			CommentCount:  int64(v.CommentCount),
-			//TODO: 未完善 后续完成喜欢操作时，填充is_favorite字段,暂时写死
-			IsFavorite: false,
-			Title:      v.Title,
+			IsFavorite:    isFavorite,
+			Title:         v.Title,
 		})
 	}
 	resp = &video.VideoListResp{

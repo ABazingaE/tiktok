@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"tiktok/cmd/video/dal/db"
 	"tiktok/cmd/video/rpc"
 	"tiktok/kitex_gen/user"
@@ -21,11 +22,21 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 	//判断latest_time参数，若为0则设定为当下时间
 	latestTime := req.LatestTime
 
-	if *latestTime == int64(0) {
+	if *latestTime == int64(0) || req.LatestTime == nil {
 		latestTime = new(int64)
 		*latestTime = time.Now().Unix()
 	}
 
+	//取出请求者id
+	var requestId int
+	if req.Token != "" {
+		requestId, err = strconv.Atoi(req.Token)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//查询视频基本信息
 	videoInfo, nextTime, err := db.GetVideoStream(s.ctx, *latestTime)
 	if err != nil {
 		return nil, err
@@ -42,10 +53,23 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 		if req.Token != "" {
 			authorInfoReq.Token = req.Token
 		}
+		//查询视频作者信息
 		authorInfoResp, err := rpc.GetUserInfo(s.ctx, authorInfoReq)
 		if err != nil {
 			return nil, err
 		}
+
+		//查询当前用户是否喜欢该视频
+		var isFavorite bool
+		if req.Token != "" {
+			isFavorite, err = db.IsFavorite(s.ctx, int64(requestId), int64(v.Id))
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			isFavorite = false
+		}
+
 		//完善videoList
 		videoList = append(videoList, &video.Video{
 			Id:            int64(v.Id),
@@ -54,9 +78,8 @@ func (s *VideoStreamService) VideoFeed(req *video.VideoStreamReq) (resp *video.V
 			CoverUrl:      v.CoverUrl,
 			FavoriteCount: int64(v.FavoriteCount),
 			CommentCount:  int64(v.CommentCount),
-			//TODO: 未完善 后续完成喜欢操作时，填充is_favorite字段,暂时写死
-			IsFavorite: true,
-			Title:      v.Title,
+			IsFavorite:    isFavorite,
+			Title:         v.Title,
 		})
 
 	}

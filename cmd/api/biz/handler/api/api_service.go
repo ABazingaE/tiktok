@@ -14,6 +14,7 @@ import (
 	"tiktok/cmd/api/biz/rpc"
 	apiUtil "tiktok/cmd/api/biz/util"
 	"tiktok/kitex_gen/comment"
+	"tiktok/kitex_gen/follow"
 	"tiktok/kitex_gen/like"
 	"tiktok/kitex_gen/user"
 	"tiktok/kitex_gen/video"
@@ -90,6 +91,7 @@ func VideoStream(ctx context.Context, c *app.RequestContext) {
 
 	tokenString := req.Token
 	videoSteamReq := &video.VideoStreamReq{}
+
 	videoSteamReq.LatestTime = req.LatestTime
 	if tokenString != "" {
 		requestUserId, err := apiUtil.GetUserIdFromToken(tokenString)
@@ -333,10 +335,25 @@ func FollowAction(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
-
-	resp := new(api.FollowActionResp)
-
-	c.JSON(0, resp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	_, err = rpc.FollowAction(context.Background(), &follow.FollowActionReq{
+		Token:      userId,
+		ToUserId:   req.ToUserID,
+		ActionType: req.ActionType,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+	})
 }
 
 // FollowList .
@@ -350,9 +367,27 @@ func FollowList(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.FollowListResp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	c.JSON(0, resp)
+	resp := new(follow.FollowListResp)
+	resp, err = rpc.FollowList(context.Background(), &follow.FollowListReq{
+		Token:  userId,
+		UserId: req.UserID,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"user_list":   resp.UserList,
+	})
 }
 
 // FollowerList .
@@ -365,10 +400,26 @@ func FollowerList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
-
-	resp := new(api.FollowerListResp)
-
-	c.JSON(0, resp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	resp := new(follow.FollowerListResp)
+	resp, err = rpc.FollowerList(context.Background(), &follow.FollowerListReq{
+		Token:  userId,
+		UserId: req.UserID,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"user_list":   resp.UserList,
+	})
 }
 
 // FriendList .

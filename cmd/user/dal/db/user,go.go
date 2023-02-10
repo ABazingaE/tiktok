@@ -31,16 +31,16 @@ func (ui *UserInfo) TableName() string {
 	return consts.UserInfoTableName
 }
 
-type FollowRelation struct {
-	Id     int `gorm:"column:id" json:"id"`           //type:*int   comment:              version:2023-01-03 23:46
-	FromId int `gorm:"column:from_id" json:"from_id"` //type:*int   comment:关注者id      version:2023-01-03 23:46
-	ToId   int `gorm:"column:to_id" json:"to_id"`     //type:*int   comment:被关注者id    version:2023-01-03 23:46
+type Follow struct {
+	Id             int `gorm:"column:id" json:"id"`                             //type:*int   comment:    version:2023-01-09 19:53
+	FollowedUserId int `gorm:"column:followed_user_id" json:"followed_user_id"` //type:*int   comment:    version:2023-01-09 19:53
+	FollowerId     int `gorm:"column:follower_id" json:"follower_id"`           //type:*int   comment:    version:2023-01-09 19:53
 }
 
-// TableName 表名:follow_relation，。
+// TableName 表名:follow，。
 // 说明:
-func (fl *FollowRelation) TableName() string {
-	return consts.FollowTableName
+func (f *Follow) TableName() string {
+	return "follow"
 }
 
 // MGetUsers multiple get list of user info
@@ -101,12 +101,9 @@ func QueryUserInfoById(ctx context.Context, userId int64) (*UserInfo, error) {
 
 // IsFollow check if user follow another user
 func IsFollow(ctx context.Context, userId int64, requestId int64) (bool, error) {
-	res := &FollowRelation{}
-	if err := DB.WithContext(ctx).Where("from_id = ? and to_id = ?", requestId, userId).Find(&res).Error; err != nil {
+	var count int64
+	if err := DB.WithContext(ctx).Model(&Follow{}).Where("followed_user_id = ? and follower_id = ?", userId, requestId).Count(&count).Error; err != nil {
 		return false, err
 	}
-	if res.Id == 0 {
-		return false, nil
-	}
-	return true, nil
+	return count > 0, nil
 }
