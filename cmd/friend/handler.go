@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"tiktok/cmd/friend/service"
 	friend "tiktok/kitex_gen/friend"
 )
 
@@ -10,8 +11,14 @@ type FriendServiceImpl struct{}
 
 // FriendList implements the FriendServiceImpl interface.
 func (s *FriendServiceImpl) FriendList(ctx context.Context, req *friend.FriendListReq) (resp *friend.FriendListResp, err error) {
-	//  Your code here...
-	return
+	if err = req.IsValid(); err != nil {
+		return nil, err
+	}
+	resp, err = service.NewFriendListService(ctx).FriendList(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // MessageChat implements the FriendServiceImpl interface.

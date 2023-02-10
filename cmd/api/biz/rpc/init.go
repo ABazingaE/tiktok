@@ -6,4 +6,5 @@ func Init() {
 	initLike()
 	initComment()
 	initFollow()
+	initFriend()
 }

@@ -15,6 +15,7 @@ import (
 	apiUtil "tiktok/cmd/api/biz/util"
 	"tiktok/kitex_gen/comment"
 	"tiktok/kitex_gen/follow"
+	"tiktok/kitex_gen/friend"
 	"tiktok/kitex_gen/like"
 	"tiktok/kitex_gen/user"
 	"tiktok/kitex_gen/video"
@@ -432,10 +433,27 @@ func FriendList(ctx context.Context, c *app.RequestContext) {
 		SendResponse(c, errno.ConvertErr(err))
 		return
 	}
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	resp := new(friend.FriendListResp)
+	resp, err = rpc.FriendList(context.Background(), &friend.FriendListReq{
+		Token:  userId,
+		UserId: req.UserID,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
 
-	resp := new(api.FriendListResp)
-
-	c.JSON(0, resp)
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"user_list":   resp.UserList,
+	})
 }
 
 // MessageChat .
