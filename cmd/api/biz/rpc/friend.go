@@ -48,3 +48,21 @@ func FriendList(ctx context.Context, req *friend.FriendListReq) (r *friend.Frien
 	}
 	return resp, nil
 }
+
+// message action
+func MessageAction(ctx context.Context, req *friend.MessageActionReq) (r *friend.MessageActionResp, err error) {
+	resp, err := friendClient.MessageAction(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// message chat
+func MessageChat(ctx context.Context, req *friend.MessageChatReq) (r *friend.MessageChatResp, err error) {
+	resp, err := friendClient.MessageChat(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

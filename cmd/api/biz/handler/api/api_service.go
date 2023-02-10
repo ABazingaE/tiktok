@@ -467,9 +467,22 @@ func MessageChat(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.MessageChatResp)
-
-	c.JSON(0, resp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	resp := new(friend.MessageChatResp)
+	resp, err = rpc.MessageChat(context.Background(), &friend.MessageChatReq{
+		Token:    userId,
+		ToUserId: req.ToUserID,
+	})
+	c.JSON(http.StatusOK, utils.H{
+		"status_code":  0,
+		"status_msg":   "success",
+		"message_list": resp.MessageList,
+	})
 }
 
 // MessageAction .
@@ -483,7 +496,24 @@ func MessageAction(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp := new(api.MessageActionResp)
-
-	c.JSON(0, resp)
+	token := req.Token
+	userId, err := apiUtil.GetUserIdFromToken(token)
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	_, err = rpc.MessageAction(context.Background(), &friend.MessageActionReq{
+		Token:      userId,
+		ToUserId:   req.ToUserID,
+		ActionType: req.ActionType,
+		Content:    req.Content,
+	})
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err))
+		return
+	}
+	c.JSON(http.StatusOK, utils.H{
+		"status_code": 0,
+		"status_msg":  "success",
+	})
 }

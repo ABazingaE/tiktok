@@ -23,12 +23,24 @@ func (s *FriendServiceImpl) FriendList(ctx context.Context, req *friend.FriendLi
 
 // MessageChat implements the FriendServiceImpl interface.
 func (s *FriendServiceImpl) MessageChat(ctx context.Context, req *friend.MessageChatReq) (resp *friend.MessageChatResp, err error) {
-	//  Your code here...
-	return
+	if err = req.IsValid(); err != nil {
+		return nil, err
+	}
+	resp, err = service.NewMessageChatService(ctx).MessageChat(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // MessageAction implements the FriendServiceImpl interface.
 func (s *FriendServiceImpl) MessageAction(ctx context.Context, req *friend.MessageActionReq) (resp *friend.MessageActionResp, err error) {
-	//  Your code here...
-	return
+	if err = req.IsValid(); err != nil {
+		return nil, err
+	}
+	resp, err = service.NewMessageActionService(ctx).SendMessage(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

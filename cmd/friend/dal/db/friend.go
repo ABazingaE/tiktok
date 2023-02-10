@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Follow struct {
@@ -102,4 +103,52 @@ func GetLatestMessage(ctx context.Context, userId int, friendId int) (message st
 		}
 	}
 	return "", 0, err
+}
+
+// 发送消息
+func SendMessage(ctx context.Context, fromUserId int, toUserId int, content string) error {
+	//插入消息
+	err := DB.WithContext(ctx).Table("message").Create(&Message{
+		FromUserId: fromUserId,
+		ToUserId:   toUserId,
+		Content:    content,
+		CreateTime: int(time.Now().Unix()),
+	}).Error
+	if err != nil {
+		return err
+	}
+	//更新最新消息
+	//1.不确定latest_message表中的user_id是谁，先查询一下
+	var latestMessage LatestMessage
+	err = DB.WithContext(ctx).Table("latest_message").Where("user_id = ? and follower_id = ?", fromUserId, toUserId).First(&latestMessage).Error
+	if err == nil {
+		//若查询到对应的userId字段为fromUserId，则更新两个字段：最新消息内容与消息类型（1）
+		err = DB.WithContext(ctx).Table("latest_message").Where("user_id = ? and follower_id = ?", fromUserId, toUserId).Update("message", content).Update("msg_type", 1).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	//若刚刚查询不到，则查询另一种情况
+	err = DB.WithContext(ctx).Table("latest_message").Where("user_id = ? and follower_id = ?", toUserId, fromUserId).First(&latestMessage).Error
+	if err == nil {
+		//若查询到对应的userId字段为toUserId，则更新两个字段：最新消息内容与消息类型（0）
+		err = DB.WithContext(ctx).Table("latest_message").Where("user_id = ? and follower_id = ?", toUserId, fromUserId).Update("message", content).Update("msg_type", 0).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+// 聊天记录,传入两个id，和一个id值，仅查询id值大于此id的记录
+func GetChatRecord(ctx context.Context, userId int, friendId int, id int) ([]Message, error) {
+	var messageList []Message
+	err := DB.WithContext(ctx).Table("message").Where("(from_user_id = ? and to_user_id = ?) or (from_user_id = ? and to_user_id = ?)", userId, friendId, friendId, userId).Where("id > ?", id).Order("id asc").Find(&messageList).Error
+	if err != nil {
+		return nil, err
+	}
+	return messageList, nil
 }
